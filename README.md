@@ -69,8 +69,8 @@ ZkData为zk获取的相关数据
         MaxIdle  uint64 `json:"maxIdle"`  // max idle
         Children uint64 `json:"children"` // children number
     }
-    func connectZk(zkHost string) 主要实现实例zk的连接、注册等操作
-    func watch() 实现zk节点变化的通知
-    func manager() 实现实例中协程的管理
-    func work() 实现协程的所需要的操作
+func connectZk(zkHost string) 主要实现实例zk的连接、注册等操作
+func watch() 实现zk节点变化的通知
+func manager() 实现实例中协程的管理
+func work() 实现协程的所需要的操作
 ```

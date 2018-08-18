@@ -6,7 +6,7 @@
 package service
 
 import (
-	"godog"
+	"github.com/chuck1024/godog"
 )
 
 func Service(zkHost string) {

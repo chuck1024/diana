@@ -10,9 +10,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/chuck1024/godog"
+	"github.com/chuck1024/godog/utils"
 	"github.com/samuel/go-zookeeper/zk"
-	"godog"
-	"godog/utils"
 	"time"
 )
 

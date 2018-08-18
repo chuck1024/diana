@@ -7,9 +7,9 @@ package cache
 
 import (
 	"fmt"
-	"godog"
-	"godog/store/cache"
-	"godog/utils"
+	"github.com/chuck1024/godog"
+	"github.com/chuck1024/godog/store/cache"
+	"github.com/chuck1024/godog/utils"
 )
 
 const (

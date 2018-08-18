@@ -74,5 +74,3 @@ func watch() 实现zk节点变化的通知
 func manager() 实现实例中协程的管理
 func work() 实现协程的所需要的操作
 ```
-
->* 当然zk所有实现的功能也可以用redis实现。嘿嘿嘿...

@@ -1,0 +1,12 @@
+{
+  "Log": {
+    "File": "log/diana.log",
+    "Level": "debug",
+    "Name": "diana",
+    "Daemon": false,
+    "Suffix": "20060102-15"
+  },
+
+  "zkHost":"127.0.0.1:2181",
+  "redis" : "tcp://127.0.0.1:6379/0?timeout=60s&maxidle=10"
+}

@@ -11,14 +11,11 @@ import (
 	_ "github.com/chuck1024/godog/log"
 )
 
-var App *godog.Application
-
 func main() {
-	App = godog.NewApplication("diana")
-	zkHost, _ := App.AppConfig.String("zkHost")
+	zkHost, _ := godog.AppConfig.String("zkHost")
 	service.Service(zkHost)
 
-	err := App.Run()
+	err := godog.Run()
 	if err != nil {
 		godog.Error("Error occurs, error = %s", err.Error())
 		return

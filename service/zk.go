@@ -16,10 +16,6 @@ import (
 	"time"
 )
 
-const (
-	rootPath = "/diana" // zk path
-)
-
 type ZkData struct {
 	List     uint64 `json:"list"`     // redis list number
 	MaxIdle  uint64 `json:"maxIdle"`  // max idle
@@ -33,6 +29,8 @@ var (
 
 	initRoutines uint64 = 0
 	Conn         *zk.Conn
+
+	rootPath, _ = godog.AppConfig.String("rootPath")
 )
 
 func isExistRoot() (err error) {
@@ -42,10 +40,12 @@ func isExistRoot() (err error) {
 		return
 	}
 
+	list, _ := godog.AppConfig.Int("list")
+	maxIdle, _ := godog.AppConfig.Int("maxIdle")
 	if !isExist {
 		data := &ZkData{
-			List:    20,
-			MaxIdle: 20,
+			List:    uint64(list),
+			MaxIdle: uint64(maxIdle),
 		}
 
 		dataByte, _ := json.Marshal(data)
@@ -209,7 +209,7 @@ func manager() {
 			if y != 0 {
 				for i := 0; i < int(y); i++ {
 					p := fmt.Sprintf("%s/extern/%d", rootPath, i)
-					path, err := Conn.Create(p, nil, zk.FlagEphemeral, zk.WorldACL(zk.PermAll))
+					path, err := Conn.Create(p, []byte(utils.GetLocalIP()), zk.FlagEphemeral, zk.WorldACL(zk.PermAll))
 					if err == nil {
 						if p == path {
 							getLock(t.List)

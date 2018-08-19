@@ -2,11 +2,23 @@
   "Log": {
     "File": "log/diana.log",
     "Level": "debug",
-    "Name": "diana",
     "Daemon": false,
-    "Suffix": "20060102-15"
+    "Suffix": "20060102"
+  },
+  "Prog": {
+    "CPU": 0,
+    "HealthPort": 0
+  },
+  "Server": {
+    "AppName": "diana",
+    "HttpPort":0,
+    "TcpPort": 0
   },
 
   "zkHost":"127.0.0.1:2181",
-  "redis" : "tcp://127.0.0.1:6379/0?timeout=60s&maxidle=10"
+  "redis" : "tcp://127.0.0.1:6379/0?timeout=60s&maxidle=10",
+
+  "rootPath": "/diana",
+  "list":20,
+  "maxIdle":20
 }

@@ -236,7 +236,7 @@ func manager() {
 func getLock(lists uint64) {
 	var f int
 	for i := 0; i < int(lists); i++ {
-		if err := cache.SetLock(i); err != nil {
+		if _, err := cache.SetLock(i); err != nil {
 			continue
 		}
 

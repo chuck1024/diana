@@ -103,7 +103,7 @@ func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建root
   },
 
   "zkHost":"127.0.0.1:2181",
-  "redis" : "tcp://127.0.0.1:6379/0?timeout=60s&maxidle=10",
+  "redis" : "tcp://127.0.0.1:6379/0?cluster=false&idleTimeout=1s&maxIdle=10&madActive=200",
 
   "rootPath": "/diana",
   "list":20,

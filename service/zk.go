@@ -298,6 +298,11 @@ func work(f int) {
 			continue
 		}
 
+		//if err := dispatchChanData(value); err != nil {
+		//	godog.Error("[work] dispatchChanData occur error: %s ", err)
+		//	continue
+		//}
+
 		select {
 		case <-stopChan:
 			godog.Debug("[work] received stop chan %d", f)
@@ -306,9 +311,5 @@ func work(f int) {
 		default:
 		}
 
-		//if err := dispatchChanData(value); err != nil {
-		//	godog.Error("[work] dispatchChanData occur error: %s ", err)
-		//	continue
-		//}
 	}
 }

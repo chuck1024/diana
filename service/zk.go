@@ -194,11 +194,26 @@ func manager() {
 			}
 
 			godog.Debug("[manager] r:%d", r)
+			count := 0
 			if initRoutines == 0 || initRoutines <= routines {
 				for i := 0; i < r; i++ {
-					getLock(t.List)
+					c := getLock(t.List)
+					count += c
 					time.Sleep(10 * time.Millisecond)
 				}
+
+				if r - count > 0 {
+					for {
+						c := getLock(t.List)
+						count += c
+						if (r - count) == 0 {
+							break
+						}else {
+							time.Sleep(10 * time.Millisecond)
+						}
+					}
+				}
+
 			} else if initRoutines > routines {
 				for i := 0; i < r; i++ {
 					godog.Debug("[manager] stopChan<-true :%d", i)
@@ -234,7 +249,7 @@ func manager() {
 	}
 }
 
-func getLock(lists uint64) {
+func getLock(lists uint64) int {
 	var f int
 	for i := 0; i < int(lists); i++ {
 		if _, err := cache.SetLock(i); err != nil {
@@ -246,8 +261,10 @@ func getLock(lists uint64) {
 		go func(v int) {
 			work(v)
 		}(f)
-		break
+		return 1
 	}
+
+	return 0
 }
 
 func work(f int) {

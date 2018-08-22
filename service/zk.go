@@ -289,6 +289,7 @@ func work(f int) {
 			default:
 			}
 
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 

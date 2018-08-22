@@ -197,6 +197,7 @@ func manager() {
 			if initRoutines == 0 || initRoutines <= routines {
 				for i := 0; i < r; i++ {
 					getLock(t.List)
+					time.Sleep(10 * time.Millisecond)
 				}
 			} else if initRoutines > routines {
 				for i := 0; i < r; i++ {

@@ -6,7 +6,7 @@
 package service
 
 import (
-	"diana/cache"
+	"diana/model/dao/cache"
 	"encoding/json"
 	"errors"
 	"fmt"

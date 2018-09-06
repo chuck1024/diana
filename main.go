@@ -6,7 +6,7 @@
 package main
 
 import (
-	"diana/service"
+	"diana/model/service"
 	"github.com/chuck1024/godog"
 	_ "github.com/chuck1024/godog/log"
 	"github.com/chuck1024/godog/store/cache"

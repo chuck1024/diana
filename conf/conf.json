@@ -11,7 +11,7 @@
   },
   "Server": {
     "AppName": "diana",
-    "HttpPort":0,
+    "HttpPort":10240,
     "TcpPort": 0
   },
 

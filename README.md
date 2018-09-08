@@ -111,7 +111,7 @@ func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建root
   },
   "Server": {
     "AppName": "diana",
-    "HttpPort":0,
+    "HttpPort":10240,
     "TcpPort": 0
   },
 

@@ -54,21 +54,29 @@ email : chuck.ch1024@outlook.com
     .
     ├── LICENSE
     ├── README.md
+    ├── common
+    │   └── structs.go
     ├── conf
     │   └── conf.json
+    ├── controller
+    │   └── rxd_control.go
     ├── main.go
     ├── model
     │   ├── dao
     │   │   └── cache
     │   │       └── redis_dao.go
     │   └── service
-    │       ├── handle_srv.go
+    │       ├── dispatch_srv.go
+    │       ├── rxd_srv.go
     │       ├── serivce_srv.go
     │       └── zk.go
     └── vendor
-> cache为redis的相关操作
+> common为http接收数据的结构体定义
 > conf为配置文件
-> service为项目核心代码
+> controller为http controller
+> model为项目核心代码
+> dao为redis的相关操作
+> service 核心的数据处理和zk相关操作
 重点：zk.go
 ZkData为zk获取的相关数据
     type ZkData struct {

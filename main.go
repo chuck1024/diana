@@ -6,11 +6,16 @@
 package main
 
 import (
+	"diana/controller"
 	"diana/model/service"
 	"github.com/chuck1024/godog"
 	"github.com/chuck1024/godog/dao/cache"
 	_ "github.com/chuck1024/godog/log"
 )
+
+func register() {
+	godog.AppHttp.AddHttpHandler("/rxd", controller.RxdControl)
+}
 
 func main() {
 	url, _ := godog.AppConfig.String("redis")
@@ -18,6 +23,8 @@ func main() {
 
 	zkHost, _ := godog.AppConfig.String("zkHost")
 	service.Service(zkHost)
+
+	register()
 
 	err := godog.Run()
 	if err != nil {

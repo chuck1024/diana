@@ -19,6 +19,6 @@
   "redis" : "tcp://127.0.0.1:6379/0?cluster=false&idleTimeout=1s&maxIdle=10&madActive=200",
 
   "rootPath": "/diana",
-  "list":20,
+  "sortSetNum":20,
   "maxIdle":20
 }

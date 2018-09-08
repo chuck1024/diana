@@ -17,15 +17,15 @@ import (
 )
 
 type ZkData struct {
-	List     uint64 `json:"list"`     // redis list number
-	MaxIdle  uint64 `json:"maxIdle"`  // max idle
-	Children uint64 `json:"children"` // children number
+	SortSetNum uint64 `json:"sortSetNum"` // redis SortSet number
+	MaxIdle    uint64 `json:"maxIdle"`    // max idle
+	Children   uint64 `json:"children"`   // children number
 }
 
 var (
-	listChan = make(chan *ZkData, 100)
-	stopChan = make(chan bool, 100)
-	errChan  = make(chan bool, 100)
+	sortSetChan = make(chan *ZkData, 100)
+	stopChan    = make(chan bool, 100)
+	errChan     = make(chan bool, 100)
 
 	initRoutines uint64 = 0
 	Conn         *zk.Conn
@@ -40,12 +40,12 @@ func isExistRoot() (err error) {
 		return
 	}
 
-	list, _ := godog.AppConfig.Int("list")
+	SortSetNum, _ := godog.AppConfig.Int("sortSetNum")
 	maxIdle, _ := godog.AppConfig.Int("maxIdle")
 	if !isExist {
 		data := &ZkData{
-			List:    uint64(list),
-			MaxIdle: uint64(maxIdle),
+			SortSetNum: uint64(SortSetNum),
+			MaxIdle:    uint64(maxIdle),
 		}
 
 		dataByte, _ := json.Marshal(data)
@@ -128,7 +128,7 @@ func connectZk(zkHost string) (err error) {
 	}
 
 	t.Children = uint64(len(children) - 1)
-	listChan <- t
+	sortSetChan <- t
 
 	godog.Debug("[connectZk] root:%v, children:%d", *t, len(children))
 
@@ -167,7 +167,7 @@ func watch() {
 				}
 
 				t.Children = uint64(len(children) - 1)
-				listChan <- t
+				sortSetChan <- t
 				godog.Debug("root:%v ,children:%d", *t, len(children))
 			}
 		}
@@ -177,10 +177,10 @@ func watch() {
 func manager() {
 	for {
 		select {
-		case t := <-listChan:
-			godog.Debug("[manager] listChan:%v", *t)
+		case t := <-sortSetChan:
+			godog.Debug("[manager] sortSetChan:%v", *t)
 			r := 0
-			routines := t.List / t.Children
+			routines := t.SortSetNum / t.Children
 			godog.Debug("[manager] initRoutines: %d , routines: %d ", initRoutines, routines)
 
 			if initRoutines == 0 {
@@ -197,18 +197,18 @@ func manager() {
 			count := 0
 			if initRoutines == 0 || initRoutines <= routines {
 				for i := 0; i < r; i++ {
-					c := getLock(t.List)
+					c := getLock(t.SortSetNum)
 					count += c
 					time.Sleep(10 * time.Millisecond)
 				}
 
-				if r - count > 0 {
+				if r-count > 0 {
 					for {
-						c := getLock(t.List)
+						c := getLock(t.SortSetNum)
 						count += c
 						if (r - count) == 0 {
 							break
-						}else {
+						} else {
 							time.Sleep(10 * time.Millisecond)
 						}
 					}
@@ -221,37 +221,37 @@ func manager() {
 				}
 			}
 
-			y := t.List % t.Children
+			y := t.SortSetNum % t.Children
 			if y != 0 {
 				for i := 0; i < int(y); i++ {
 					p := fmt.Sprintf("%s/extern/%d", rootPath, i)
 					path, err := Conn.Create(p, []byte(utils.GetLocalIP()), zk.FlagEphemeral, zk.WorldACL(zk.PermAll))
 					if err == nil {
 						if p == path {
-							getLock(t.List)
+							getLock(t.SortSetNum)
 						}
 					}
 				}
 			}
 
-			go func(lists uint64) {
+			go func(sortSets uint64) {
 				for {
 					select {
 					case <-errChan:
 						time.Sleep(5 * time.Second)
-						getLock(lists)
+						getLock(sortSets)
 					}
 				}
-			}(t.List)
+			}(t.SortSetNum)
 
 			initRoutines = routines
 		}
 	}
 }
 
-func getLock(lists uint64) int {
+func getLock(sortSets uint64) int {
 	var f int
-	for i := 0; i < int(lists); i++ {
+	for i := 0; i < int(sortSets); i++ {
 		if _, err := cache.SetLock(i); err != nil {
 			continue
 		}
@@ -270,7 +270,7 @@ func getLock(lists uint64) int {
 func work(f int) {
 	defer func() {
 		if r := recover(); r != nil {
-			godog.Error("[work] work list:%d occur error:%s", f, r)
+			godog.Error("[work] work sortSet:%d occur error:%s", f, r)
 			errChan <- true
 		}
 	}()
@@ -292,9 +292,9 @@ func work(f int) {
 	}(f)
 
 	for {
-		l, err := cache.GetListLen(f)
+		l, err := cache.GetZCard(f)
 		if err != nil {
-			godog.Error("[work] LLen occur error: %s", err)
+			godog.Error("[work] GetZCard occur error: %s", err)
 			continue
 		}
 
@@ -311,16 +311,27 @@ func work(f int) {
 			continue
 		}
 
-		_, err = cache.GetListRPop(f)
+		value, err := cache.GetZRange(f)
 		if err != nil {
-			godog.Error("[work] cache GetListRPop occur error: %s", err)
+			godog.Error("[work] cache GetZRange occur error: %s", err)
 			continue
 		}
 
-		//if err := dispatchChanData(value); err != nil {
-		//	godog.Error("[work] dispatchChanData occur error: %s ", err)
-		//	continue
-		//}
+		retryNum := 0
+	Retry:
+		if err = dispatchChanData(value); err != nil {
+			retryNum++
+			godog.Error("[work] dispatchChanData occur error: %s ", err)
+
+			if retryNum < 3 {
+				goto Retry
+			}
+		}
+
+		if err = cache.DelSortSet(f, value); err != nil {
+			godog.Error("[work] DelSortSet occur error: %s ", err)
+			continue
+		}
 
 		select {
 		case <-stopChan:

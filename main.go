@@ -8,8 +8,8 @@ package main
 import (
 	"diana/model/service"
 	"github.com/chuck1024/godog"
+	"github.com/chuck1024/godog/dao/cache"
 	_ "github.com/chuck1024/godog/log"
-	"github.com/chuck1024/godog/store/cache"
 )
 
 func main() {

@@ -21,7 +21,7 @@ email : chuck.ch1024@outlook.com
 服务A有多个实例运行，例如有A1和A2。
 正常情况：
     1、A收到类型为插入db的流水（data1），A将数据插入数据库；
-    2、A收到类型为删除db的流水（data1），A将数据删除；
+    2、A收到类型为删除db的流水（data1），A将数据删除；(当然这里的删除指的软删除)
 但当流水的数据量较大时，A1还未完成data1相关的数据的插入操作，A2又接收到删除data1的流水2，又开始处理删除data1相关的数据。这样就会产生冲突，数据不一致。
 ```
 
@@ -33,15 +33,16 @@ email : chuck.ch1024@outlook.com
 
 ### diana方案设计
 ```
-1、保证数据操作的时序性，将A接收到的流水根据流水中的字段（如用户id）取模到redis的list中，然后依次取出进行处理。
-    （1）根据整个服务的评估，设置n个list；
-    （2）将流水中的字段（如用户id）取模，然后插入相对应的list；
-    （3）判断list的长度是否大于0，大于0代表有流水需要处理，然后处理流水。
+1、保证数据操作的时序性，将A接收到的流水根据流水中的字段（如用户id）取模到redis的sortSet中，然后依次取出进行处理。
+    （1）根据整个服务的评估，设置n个sortSet；
+    （2）将流水中的字段（如用户id）取模，然后插入相对应的sortSet，socre的时间戳，单位纳秒；
+    （3）判断sortSet的元素数量是否大于0，大于0代表有流水需要处理，然后取出分数最小的元素处理；
+    （4）当处理数据成功后，再到对应的sortSet删除该元素，如果处理出错，将重试3次。
 2、多个实例保证同一个数据由同一个实例处理：
 单个实例的实现：
-    （1）设置n个协程，一个协程处理一个list；
-    （2）协程先去redis加锁，表示某个list已有协程占有，设置过期时间并协程中定期进行过期时间更新（当协程挂掉时，redis中的锁能够及时释放）；
-    （3）开始从list中取出流水进行相关数据的处理。
+    （1）设置n个协程，一个协程处理一个sortSet；
+    （2）协程先去redis加锁，表示某个sortSet已有协程占有，设置过期时间并协程中定期进行过期时间更新（当协程挂掉时，redis中的锁能够及时释放）；
+    （3）开始从sortSet中最早的member取出，进行相关数据的处理。
 多个实例的实现：
     （1）在zk设置协程的数量和最大实例数，因为一个实例至少拥有一个协程；
     （2）当实例在zk上注册后，根据当前实例总数除以协程数，为一个实例需要开启的协程数；如果有余数，协程现在redis中抢锁，然后在zk的extern目录下注册。
@@ -53,21 +54,25 @@ email : chuck.ch1024@outlook.com
     .
     ├── LICENSE
     ├── README.md
-    ├── cache
-    │   └── redis.go
     ├── conf
     │   └── conf.json
     ├── main.go
-    └── service
-        ├── serivce.go
-        └── zk.go
+    ├── model
+    │   ├── dao
+    │   │   └── cache
+    │   │       └── redis_dao.go
+    │   └── service
+    │       ├── handle_srv.go
+    │       ├── serivce_srv.go
+    │       └── zk.go
+    └── vendor
 > cache为redis的相关操作
 > conf为配置文件
 > service为项目核心代码
 重点：zk.go
 ZkData为zk获取的相关数据
     type ZkData struct {
-        List     uint64 `json:"list"`     // redis list number
+        SortSetNum  uint64 `json:"list"`  // redis SortSet number
         MaxIdle  uint64 `json:"maxIdle"`  // max idle
         Children uint64 `json:"children"` // children number
     }
@@ -75,7 +80,7 @@ func connectZk(zkHost string) 主要实现实例zk的连接、注册等操作
 func watch() 实现zk节点变化的通知
 func manager() 实现实例中协程的管理
 func work() 实现协程的所需要的操作
-func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建rootPath路径和list、maxIdle。当然也可以手动在zk中先创建。
+func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建rootPath路径和sortSet、maxIdle。当然也可以手动在zk中先创建。
 ```
 
 ### 运行
@@ -106,7 +111,7 @@ func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建root
   "redis" : "tcp://127.0.0.1:6379/0?cluster=false&idleTimeout=1s&maxIdle=10&madActive=200",
 
   "rootPath": "/diana",
-  "list":20,
+  "sortSetNum":20,
   "maxIdle":20
 }
 
@@ -238,10 +243,10 @@ func isExistRoot()方法是判断zk是否有rootPath路径，没有就创建root
 ### 总结
 ```
 1、第一个实例日志中打印的[zk.go:133] [connectZk] root:{20 20 1}, children:2，children为什么是2？
-    因为isExistRoot()会创建一个extern的znode。当list除以实例数有余数时，每个实例则现在extern注册一个子节点，代表这个
-    list已被某个实例占用。子节点的data为实例的地址，方便查看多余出来的list在哪个实例上运行。
+    因为isExistRoot()会创建一个extern的znode。当sortSetNum除以实例数有余数时，每个实例则现在extern注册一个子节点，代表这个
+    sortSet已被某个实例占用。子节点的data为实例的地址，方便查看多余出来的sortSett在哪个实例上运行。
 2、读者可以试着运行3个实例的实验。作者已经做过多个实例的情况，在此就不在赘述。
-3、后续的优化，可以使用有序集合替代list。
+3、后续的优化，可以使用有序集合替代list。--此版本已优化
 4、读者有任何问题，都可以发邮件与作者联系讨论。
 ```
 

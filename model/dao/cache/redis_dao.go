@@ -15,21 +15,21 @@ import (
 )
 
 const (
-	listPrefix = "diana:list:"
-	lockPrefix = "diana:lock:"
-	lockExpire = 5
+	sortSetPrefix = "diana:sortSet:"
+	lockPrefix    = "diana:lock:"
+	lockExpire    = 5
 )
 
-func getListKey(list int) string {
-	return fmt.Sprintf("%s%d", listPrefix, list)
+func getSortSetKey(list int) string {
+	return fmt.Sprintf("%s%d", sortSetPrefix, list)
 }
 
-func getLockKey(list int) string {
-	return fmt.Sprintf("%s%d", lockPrefix, list)
+func getLockKey(num int) string {
+	return fmt.Sprintf("%s%d", lockPrefix, num)
 }
 
-func SetLock(list int) (int, error) {
-	key := getLockKey(list)
+func SetLock(num int) (int, error) {
+	key := getLockKey(num)
 	//godog.Debug("[SetLock] key: %s", key)
 
 	value := utils.GetLocalIP()
@@ -51,8 +51,8 @@ func SetLock(list int) (int, error) {
 	return num, nil
 }
 
-func ExpireLock(list int) (err error) {
-	key := getLockKey(list)
+func ExpireLock(num int) (err error) {
+	key := getLockKey(num)
 	//godog.Debug("[ExpireLock] key: %s", key)
 
 	if _, err := cache.Expire(key, lockExpire); err != nil {
@@ -63,8 +63,8 @@ func ExpireLock(list int) (err error) {
 	return
 }
 
-func DelLock(list int) (err error) {
-	key := getLockKey(list)
+func DelLock(num int) (err error) {
+	key := getLockKey(num)
 	godog.Debug("[DelLock] key: %s", key)
 
 	if _, err := cache.Del(key); err != nil {
@@ -75,38 +75,51 @@ func DelLock(list int) (err error) {
 	return
 }
 
-func GetListLen(list int) (int, error) {
-	key := getListKey(list)
-	//godog.Debug("[GetListLen] key: %s", key)
+func SetSortSet(num int, ts int64, value string) error {
+	key := getSortSetKey(num)
+	godog.Debug("[SetSortSet] key: %s", key)
 
-	length, err := cache.LLen(key)
+	if err := cache.ZAdd(key, ts, value); err != nil {
+		godog.Error("[SetSortSet] ZAdd occur error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func GetZCard(num int) (int, error) {
+	key := getSortSetKey(num)
+	//godog.Debug("[GetZCard] key: %s", key)
+
+	length, err := cache.ZCard(key)
 	if err != nil {
-		godog.Error("[GetListLen] LLen occur error:%s ", err)
-		return 0, err
+		godog.Error("[GetZCard] ZCard occur error: %s", err)
+		return length, err
 	}
 
 	return length, nil
 }
 
-func GetListRPop(list int) (string, error) {
-	key := getListKey(list)
-	//godog.Debug("[GetListPop] key: %s", key)
+func GetZRange(num int) (string, error) {
+	key := getSortSetKey(num)
+	godog.Debug("[GetZRange] key: %s", key)
 
-	value, err := cache.RPop(key)
+	value, err := cache.ZRange(key, 0, 0)
 	if err != nil {
-		godog.Error("[GetListPop] RPop occur error: %s", err)
+		godog.Error("[GetZRange] ZRange occur error: %s", err)
 		return "", err
 	}
 
-	return string(value), nil
+	return value[0], nil
 }
 
-func SetListLPush(list int, value string) error {
-	key := getListKey(list)
-	godog.Debug("[SetListLPush] key: %s", key)
+func DelSortSet(num int, value string) error {
+	key := getSortSetKey(num)
+	godog.Debug("[DelSortSet] key: %s", key)
 
-	if _, err := cache.LPush(key, value); err != nil {
-		godog.Error("[SetListLPush] LPush occur error: %s", err)
+	_, err := cache.ZRem(key, value)
+	if err != nil {
+		godog.Error("[DelSortSet] ZRange occur error: %s", err)
 		return err
 	}
 

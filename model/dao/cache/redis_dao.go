@@ -20,8 +20,8 @@ const (
 	lockExpire    = 5
 )
 
-func getSortSetKey(list int) string {
-	return fmt.Sprintf("%s%d", sortSetPrefix, list)
+func getSortSetKey(num int) string {
+	return fmt.Sprintf("%s%d", sortSetPrefix, num)
 }
 
 func getLockKey(num int) string {

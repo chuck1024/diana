@@ -287,6 +287,7 @@ func work(f int) {
 			case <-stop:
 				cache.DelLock(i)
 				return
+			default:
 			}
 			time.Sleep(10 * time.Millisecond)
 		}
@@ -305,6 +306,7 @@ func work(f int) {
 				godog.Debug("[work] received stop chan")
 				stop <- true
 				return
+			default:
 			}
 
 			time.Sleep(10 * time.Millisecond)
@@ -338,6 +340,7 @@ func work(f int) {
 			godog.Debug("[work] received stop chan %d", f)
 			stop <- true
 			return
+		default:
 		}
 
 	}

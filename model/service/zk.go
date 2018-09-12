@@ -208,9 +208,8 @@ func manager() {
 						count += c
 						if (r - count) == 0 {
 							break
-						} else {
-							time.Sleep(10 * time.Millisecond)
 						}
+						time.Sleep(10 * time.Millisecond)
 					}
 				}
 
@@ -241,6 +240,7 @@ func manager() {
 						time.Sleep(5 * time.Second)
 						getLock(sortSets)
 					}
+					time.Sleep(10 * time.Millisecond)
 				}
 			}(t.SortSetNum)
 
@@ -288,6 +288,7 @@ func work(f int) {
 				cache.DelLock(i)
 				return
 			}
+			time.Sleep(10 * time.Millisecond)
 		}
 	}(f)
 
@@ -304,7 +305,6 @@ func work(f int) {
 				godog.Debug("[work] received stop chan")
 				stop <- true
 				return
-			default:
 			}
 
 			time.Sleep(10 * time.Millisecond)
@@ -338,7 +338,6 @@ func work(f int) {
 			godog.Debug("[work] received stop chan %d", f)
 			stop <- true
 			return
-		default:
 		}
 
 	}

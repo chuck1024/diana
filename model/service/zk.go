@@ -239,6 +239,7 @@ func manager() {
 					case <-errChan:
 						time.Sleep(5 * time.Second)
 						getLock(sortSets)
+					default:
 					}
 					time.Sleep(10 * time.Millisecond)
 				}

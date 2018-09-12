@@ -289,8 +289,8 @@ func work(f int) {
 				cache.DelLock(i)
 				return
 			default:
+				time.Sleep(10 * time.Millisecond)
 			}
-			time.Sleep(10 * time.Millisecond)
 		}
 	}(f)
 
@@ -308,9 +308,9 @@ func work(f int) {
 				stop <- true
 				return
 			default:
+				time.Sleep(10 * time.Millisecond)
 			}
 
-			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 

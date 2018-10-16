@@ -7,7 +7,7 @@ package main
 
 import (
 	"diana/controller"
-	"diana/model/service"
+	"diana/service"
 	"github.com/chuck1024/godog"
 	"github.com/chuck1024/godog/dao/cache"
 	_ "github.com/chuck1024/godog/log"

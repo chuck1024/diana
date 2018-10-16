@@ -3,7 +3,7 @@
  * Author: Chuck1024
  */
 
-package common
+package model
 
 //TODO: according to your business, design request and response struct
 type RxdReq struct {

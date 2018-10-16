@@ -6,8 +6,8 @@
 package controller
 
 import (
-	"diana/common"
-	"diana/model/service"
+	"diana/model"
+	"diana/service"
 	"github.com/chuck1024/godog"
 	de "github.com/chuck1024/godog/error"
 	"github.com/chuck1024/godog/net/httplib"
@@ -30,8 +30,8 @@ func RxdControl(rsp http.ResponseWriter, req *http.Request) {
 	}
 
 	var dogErr *de.CodeError
-	request := &common.RxdReq{}
-	response := &common.RxdRsp{}
+	request := &model.RxdReq{}
+	response := &model.RxdRsp{}
 	currentTs := time.Now().UnixNano()
 
 	defer func() {

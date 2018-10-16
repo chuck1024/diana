@@ -6,13 +6,13 @@
 package service
 
 import (
-	"diana/common"
-	"diana/model/dao/cache"
+	"diana/dao/cache"
+	"diana/model"
 	"encoding/json"
 	"github.com/chuck1024/godog"
 )
 
-func Rxd(req *common.RxdReq, currentTs int64) error {
+func Rxd(req *model.RxdReq, currentTs int64) error {
 	reqByte, err := json.Marshal(req)
 	if err != nil {
 		godog.Error("[Rxd] json marshal occur error: %s", err)

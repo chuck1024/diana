@@ -2,7 +2,7 @@
   "Log": {
     "File": "log/diana.log",
     "Level": "DEBUG",
-    "Daemon": false,
+    "Stdout": false,
     "Suffix": "20060102"
   },
   "Prog": {

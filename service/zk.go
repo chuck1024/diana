@@ -6,10 +6,10 @@
 package service
 
 import (
-	"diana/dao/cache"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/chuck1024/diana/dao/cache"
 	"github.com/chuck1024/godog"
 	"github.com/chuck1024/godog/utils"
 	"github.com/samuel/go-zookeeper/zk"

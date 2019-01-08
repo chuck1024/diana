@@ -6,9 +6,9 @@
 package service
 
 import (
-	"diana/dao/cache"
-	"diana/model"
 	"encoding/json"
+	"github.com/chuck1024/diana/dao/cache"
+	"github.com/chuck1024/diana/model"
 	"github.com/chuck1024/godog"
 )
 

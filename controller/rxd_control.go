@@ -6,8 +6,8 @@
 package controller
 
 import (
-	"diana/model"
-	"diana/service"
+	"github.com/chuck1024/diana/model"
+	"github.com/chuck1024/diana/service"
 	"github.com/chuck1024/godog"
 	de "github.com/chuck1024/godog/error"
 	"github.com/chuck1024/godog/net/httplib"

@@ -323,10 +323,10 @@ func work(f int) {
 		retryNum := 0
 	Retry:
 		if err = dispatchChanData(value); err != nil {
-			retryNum++
-			godog.Error("[work] dispatchChanData occur error: %s ", err)
+			godog.Error("[work] dispatchChanData occur error: %s. retry:%d", err,retryNum)
 
 			if retryNum < 3 {
+				retryNum++
 				goto Retry
 			}
 		}
